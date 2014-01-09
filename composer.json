@@ -1,4 +1,4 @@
-﻿{
+{
     "name": "ydle/api-bundle",
     "description": "Ydle API Bundle",
     "type": "symfony-bundle",
