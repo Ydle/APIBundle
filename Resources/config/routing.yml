@@ -1,0 +1,25 @@
+##################
+#      API       #
+##################
+api_rooms:
+    pattern: /api/rooms
+    defaults: { _controller: YdleAPIBundle:Default:rooms }
+    requirements:
+        _method:  GET
+
+api_room:
+    pattern: /api/room/{id}
+    defaults: { _controller: YdleAPIBundle:Default:room }
+    requirements:
+        room:  \d+
+        _method:  GET
+        
+        
+api_data:
+    pattern: /api/node/{node}/{type}/{data}
+    defaults: { _controller: YdleAPIBundle:Default:data }
+    requirements:
+        node:  \d+
+        type:  \d+
+        data:  \d+
+        _method:  GET
