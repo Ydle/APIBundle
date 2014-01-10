@@ -23,3 +23,9 @@ api_data:
         type:  \d+
         data:  \d+
         _method:  GET
+        
+api_room_types:
+    pattern: /api/roomtypes
+    defaults: { _controller: YdleAPIBundle:Default:roomTypes }
+    requirements:
+        _method:  GET

@@ -103,4 +103,22 @@ class DefaultController extends Controller
             
         return new JsonResponse(array('node' => 'ok'));
     }
+    
+    /**
+    * Expose room types
+    * 
+    * @param Request $request
+    * @return JsonResponse
+    */
+    function roomTypesAction(Request $request)
+    {
+        $types = $this->get('ydle.roomtypes.manager')->findAllByName();
+        $json = array();
+        
+        foreach($types as $type){
+            $json[] = $type->toArray();
+        }
+            
+        return new JsonResponse(array('types' => $json));        
+    }
 }
