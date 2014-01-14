@@ -86,16 +86,21 @@ class DefaultController extends Controller
      */
     function dataAction(Request $request)
     {
-        if(!$node = $this->get("ydle.ihm.nodes.manager")->getRepository()->findOneBy(array('code' => $request->get('node')))){
+        if(!$node = $this->get("ydle.ihm.nodes.manager")->getRepository()->findOneBy(array('code' => $request->get('sender')))){
             return new JsonResponse(array('node' => 'ko'));
         }
-        $type = $request->get('type');
-        $data = $request->get('data');
+        
+        if(!$request->isMethod('POST')){
+            return new JsonResponse(array('error' => 'wrong access method'));
+        }
+        $sender = $request->get('sender');
+        $type   = $request->get('type');
+        $data   = $request->get('data');
         
         $nodeData = new NodeData();
         $nodeData->setNode($node);
         $nodeData->setData($data);
-        $nodeData->setType($type);
+        $nodeData->setType((int)$type);
         
         $em = $this->getDoctrine()->getManager();
         $em->persist($nodeData);

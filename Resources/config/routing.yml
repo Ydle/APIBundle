@@ -14,15 +14,11 @@ api_room:
         room:  \d+
         _method:  GET
         
-        
 api_data:
-    pattern: /api/node/{node}/{type}/{data}
+    pattern: /api/node/data
     defaults: { _controller: YdleAPIBundle:Default:data }
     requirements:
-        node:  \d+
-        type:  \d+
-        data:  \d+
-        _method:  GET
+        _method:  POST
         
 api_room_types:
     pattern: /api/roomtypes
