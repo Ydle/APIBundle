@@ -25,3 +25,9 @@ api_room_types:
     defaults: { _controller: YdleAPIBundle:Default:roomTypes }
     requirements:
         _method:  GET
+        
+api_log_add:
+    pattern: /api/log/add
+    defaults: { _controller: YdleAPIBundle:Default:addLog }
+    requirements:
+        _method:  POST

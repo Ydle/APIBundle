@@ -86,16 +86,16 @@ class DefaultController extends Controller
      */
     function dataAction(Request $request)
     {
-        if(!$node = $this->get("ydle.ihm.nodes.manager")->getRepository()->findOneBy(array('code' => $request->get('sender')))){
+        $sender = $request->get('sender');
+        $type   = $request->get('type');
+        $data   = $request->get('data');
+        if(!$node = $this->get("ydle.ihm.nodes.manager")->getRepository()->findOneBy(array('code' => $sender))){
             return new JsonResponse(array('node' => 'ko'));
         }
         
         if(!$request->isMethod('POST')){
             return new JsonResponse(array('error' => 'wrong access method'));
         }
-        $sender = $request->get('sender');
-        $type   = $request->get('type');
-        $data   = $request->get('data');
         
         $nodeData = new NodeData();
         $nodeData->setNode($node);
@@ -105,6 +105,8 @@ class DefaultController extends Controller
         $em = $this->getDoctrine()->getManager();
         $em->persist($nodeData);
         $em->flush();
+        
+        $this->get('ydle.logger')->log('data', 'Data received from node #'.$sender.' : '.$data, 'node');
             
         return new JsonResponse(array('node' => 'ok'));
     }
@@ -125,5 +127,25 @@ class DefaultController extends Controller
         }
             
         return new JsonResponse(array('types' => $json));        
+    }
+    
+    /**
+     * Expose logs to the master
+     * 
+     * @param \Symfony\Component\HttpFoundation\Request $request
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     */
+    function addLogAction(Request $request)
+    {
+        if(!$request->isMethod('POST')){
+            return new JsonResponse(array('error' => 'wrong access method'));
+        }
+        
+        $message = $request->get('message');
+        $level   = $request->get('level');
+        
+        $this->get('ydle.logger')->log('log', $message, 'master');
+        
+        return new JsonResponse(array('log' => 'ok'));
     }
 }
