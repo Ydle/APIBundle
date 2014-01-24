@@ -97,6 +97,10 @@ class DefaultController extends Controller
             return new JsonResponse(array('error' => 'wrong access method'));
         }
         
+        if(empty($data)){
+            return new JsonResponse(array('error' => 'no data sent'));
+        }
+        
         $nodeData = new NodeData();
         $nodeData->setNode($node);
         $nodeData->setData($data);
