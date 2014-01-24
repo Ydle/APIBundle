@@ -29,7 +29,7 @@ class DefaultController extends Controller
                    "description" => $room->getDescription(),
                    "type" => $room->getType()->getName(),
                    // rechercher le nombre de capteurs dans la pi?ce
-                   "capteurs" => $this->get("ydle.ihm.nodes.manager")->countSensorsByRoom($room) 
+                   "capteurs" => $this->get("ydle.nodes.manager")->countSensorsByRoom($room) 
             );
         }
         return new JsonResponse(array('rooms' => $json));        
@@ -50,7 +50,7 @@ class DefaultController extends Controller
 
         $jsonSensor = array();
          //  rechercher les capteurs(name,type,currentValue,unit) de la pi?ce
-        $nodes = $this->get("ydle.ihm.nodes.manager")->findSensorsByRoom($room); 
+        $nodes = $this->get("ydle.nodes.manager")->findSensorsByRoom($room); 
         foreach ($nodes as $node) { 
             foreach ($node->getTypes() as $capteur) { 
                 $jsonSensor[]=array(
@@ -89,7 +89,7 @@ class DefaultController extends Controller
         $sender = $request->get('sender');
         $type   = $request->get('type');
         $data   = $request->get('data');
-        if(!$node = $this->get("ydle.ihm.nodes.manager")->getRepository()->findOneBy(array('code' => $sender))){
+        if(!$node = $this->get("ydle.nodes.manager")->getRepository()->findOneBy(array('code' => $sender))){
             return new JsonResponse(array('node' => 'ko'));
         }
         
