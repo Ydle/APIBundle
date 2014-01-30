@@ -152,4 +152,28 @@ class DefaultController extends Controller
         
         return new JsonResponse(array('log' => 'ok'));
     }
+    
+    /**
+     * Expose array of logs to the master
+     * 
+     * @param \Symfony\Component\HttpFoundation\Request $request
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     */
+    function addLogsAction(Request $request)
+    {
+        if(!$request->isMethod('POST')){
+            return new JsonResponse(array('error' => 'wrong access method'));
+        }
+        
+        $logs = json_decode($request->getContent(), true);
+        
+        //var_dump($logs);die;
+        foreach($logs as $log){
+            $message = $log['message'];
+            $level = $log['level'];
+            $this->get('ydle.logger')->log('log', $message, 'master');
+        }
+        
+        return new JsonResponse(array('log' => '{ok:'.count($logs).'}'));
+    }
 }

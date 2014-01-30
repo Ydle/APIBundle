@@ -31,3 +31,9 @@ api_log_add:
     defaults: { _controller: YdleAPIBundle:Default:addLog }
     requirements:
         _method:  POST
+        
+api_logs_add:
+    pattern: /api/logs/add
+    defaults: { _controller: YdleAPIBundle:Default:addLogs }
+    requirements:
+        _method:  POST
