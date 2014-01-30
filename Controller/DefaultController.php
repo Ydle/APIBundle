@@ -86,11 +86,15 @@ class DefaultController extends Controller
      */
     function dataAction(Request $request)
     {
-        $sender = $request->get('sender');
-        $type   = $request->get('type');
-        $data   = $request->get('data');
+        $sender   = $request->get('sender');
+        $typeId   = $request->get('type');
+        $data     = $request->get('data');
         if(!$node = $this->get("ydle.nodes.manager")->getRepository()->findOneBy(array('code' => $sender))){
             return new JsonResponse(array('node' => 'ko'));
+        }
+        
+        if(!$type = $this->get("ydle.sensor_types.manager")->getRepository()->findOneBy(array('id' => $typeId))){
+          return new JsonResponse(array('node' => 'ko'));
         }
         
         if(!$request->isMethod('POST')){
