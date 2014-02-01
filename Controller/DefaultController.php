@@ -108,7 +108,7 @@ class DefaultController extends Controller
         $nodeData = new NodeData();
         $nodeData->setNode($node);
         $nodeData->setData($data);
-        $nodeData->setType((int)$type);
+        $nodeData->setType($type);
         
         $em = $this->getDoctrine()->getManager();
         $em->persist($nodeData);
