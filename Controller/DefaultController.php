@@ -33,7 +33,7 @@ class DefaultController extends Controller
             );
         }
 
-        $this->get('ydle.logger')->log('info', 'get Rooms' , 'api');
+        $this->get('ydle.logger')->log('info', 'get Rooms from '.$request->getClientIp() , 'api');
         
         return new JsonResponse(array('rooms' => $json));        
     }
@@ -78,7 +78,7 @@ class DefaultController extends Controller
             "capteurs" => $jsonSensor
          );
 
-        $this->get('ydle.logger')->log('info', 'get Room #'.$request->get('id') , 'api');
+        $this->get('ydle.logger')->log('info', 'get Room #'.$request->get('id').' from '.$request->getClientIp() , 'api');
         return new JsonResponse(array('room' => $json));
     }
     
@@ -139,7 +139,7 @@ class DefaultController extends Controller
             $json[] = $type->toArray();
         }
 
-        $this->get('ydle.logger')->log('info', 'get types room' , 'api');
+        $this->get('ydle.logger')->log('info', 'get types room from '.$request->getClientIp() , 'api');
             
         return new JsonResponse(array('types' => $json));        
     }
