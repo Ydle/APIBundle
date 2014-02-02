@@ -32,6 +32,9 @@ class DefaultController extends Controller
                    "capteurs" => $this->get("ydle.nodes.manager")->countSensorsByRoom($room) 
             );
         }
+
+        $this->get('ydle.logger')->log('info', 'get Rooms' , 'api');
+        
         return new JsonResponse(array('rooms' => $json));        
     }
     
@@ -74,6 +77,8 @@ class DefaultController extends Controller
             "type" => $room->getType()->getName(),
             "capteurs" => $jsonSensor
          );
+
+        $this->get('ydle.logger')->log('info', 'get Room #'.$request->get('id') , 'api');
         return new JsonResponse(array('room' => $json));
     }
     
@@ -133,6 +138,8 @@ class DefaultController extends Controller
         foreach($types as $type){
             $json[] = $type->toArray();
         }
+
+        $this->get('ydle.logger')->log('info', 'get types room' , 'api');
             
         return new JsonResponse(array('types' => $json));        
     }
