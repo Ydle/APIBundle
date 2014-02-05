@@ -37,6 +37,42 @@ class DefaultController extends Controller
         
         return new JsonResponse(array('rooms' => $json));        
     }
+
+    /**
+     * Add Room
+     * 
+     * @param \Symfony\Component\HttpFoundation\Request $request
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     * @throws type
+     */
+    public function addRoomAction(Request $request)
+    {
+       return new JsonResponse(array('result' => 'ko'));
+    }
+
+    /**
+     * Add Room
+     * 
+     * @param \Symfony\Component\HttpFoundation\Request $request
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     * @throws type
+     */
+    public function editRoomAction(Request $request)
+    {
+       return new JsonResponse(array('result' => 'ko'));
+    }
+
+    /**
+     * Add Room
+     * 
+     * @param \Symfony\Component\HttpFoundation\Request $request
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     * @throws type
+     */
+    public function deleteRoomAction(Request $request)
+    {
+       return new JsonResponse(array('result' => 'ko'));
+    }
     
     /**
      * Expose Room details
@@ -140,6 +176,26 @@ class DefaultController extends Controller
         }
 
         $this->get('ydle.logger')->log('info', 'get types room from '.$request->getClientIp() , 'api');
+            
+        return new JsonResponse(array('types' => $json));        
+    }
+
+    /**
+    * Expose node types
+    * 
+    * @param Request $request
+    * @return JsonResponse
+    */
+    function nodeTypesAction(Request $request)
+    {
+        $types = $this->get('ydle.sensortypes.manager')->findAllByName();
+        $json = array();
+        
+        foreach($types as $type){
+            $json[] = $type->toArray();
+        }
+
+        $this->get('ydle.logger')->log('info', 'get types node from '.$request->getClientIp() , 'api');
             
         return new JsonResponse(array('types' => $json));        
     }

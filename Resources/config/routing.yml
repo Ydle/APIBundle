@@ -13,7 +13,28 @@ api_room:
     requirements:
         room:  \d+
         _method:  GET
-        
+
+api_add_room:
+    pattern: /api/room/{id}
+    defaults: { _controller: YdleAPIBundle:Default:addRoom }
+    requirements:
+        room:  \d+
+        _method:  POST
+
+api_edit_room:
+    pattern: /api/room/{id}
+    defaults: { _controller: YdleAPIBundle:Default:editRoom }
+    requirements:
+        room:  \d+
+        _method:  PUT
+
+api_edit_room:
+    pattern: /api/room/{id}
+    defaults: { _controller: YdleAPIBundle:Default:deleteRoom }
+    requirements:
+        room:  \d+
+        _method:  DELETE 
+ 
 api_data:
     pattern: /api/node/data
     defaults: { _controller: YdleAPIBundle:Default:data }
@@ -23,6 +44,12 @@ api_data:
 api_room_types:
     pattern: /api/roomtypes
     defaults: { _controller: YdleAPIBundle:Default:roomTypes }
+    requirements:
+        _method:  GET
+
+api_node_types:
+    pattern: /api/nodetypes
+    defaults: { _controller: YdleAPIBundle:Default:nodeTypes }
     requirements:
         _method:  GET
         
