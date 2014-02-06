@@ -25,11 +25,11 @@ class DefaultController extends Controller
             $json[] = array(
                    "id" => $room->getId(),
                    "name" => $room->getName(),
-                   "active" => $room->getIsActive(),
+                   "is_active" => $room->getIsActive(),
                    "description" => $room->getDescription(),
                    "type" => $room->getType()->getName(),
                    // rechercher le nombre de capteurs dans la pi?ce
-                   "capteurs" => $this->get("ydle.nodes.manager")->countSensorsByRoom($room) 
+                   "sensors" => $this->get("ydle.nodes.manager")->countSensorsByRoom($room) 
             );
         }
 
@@ -47,7 +47,24 @@ class DefaultController extends Controller
      */
     public function addRoomAction(Request $request)
     {
-       return new JsonResponse(array('result' => 'ko'));
+        $name   = $request->get('name');
+        $active   = $request->get('is_active');
+        $description   = $request->get('description');
+        $typeId     = $request->get('typeId');
+
+        $room = new Room();
+
+        $room->setIsActive($active);
+        $room->setName($name);
+        $room->setDescription($description);
+
+         //TODO chargement du type de pièce a partir de l'id
+
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($room);
+        $em->flush();
+
+       return new JsonResponse(array('room' => 'ko'));
     }
 
     /**
@@ -59,7 +76,25 @@ class DefaultController extends Controller
      */
     public function editRoomAction(Request $request)
     {
-       return new JsonResponse(array('result' => 'ko'));
+        if(!$room = $this->get("ydle.rooms.manager")->getRepository()->find($request->get('id'))){
+            return new JsonResponse(array('room' => 'ko'));
+        }
+        //TODO contrôle des paramètres
+        $name   = $request->get('name');
+        $active   = $request->get('is_active');
+        $description   = $request->get('description');
+        $typeId     = $request->get('typeId');
+
+        $room->setIsActive($active);
+        $room->setName($name);
+        $room->setDescription($description);
+ 
+        //TODO si le type de pièce a changé, on l'enregistre
+
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($room);
+        $em->flush();
+        return new JsonResponse(array('room' => $room));
     }
 
     /**
@@ -71,7 +106,14 @@ class DefaultController extends Controller
      */
     public function deleteRoomAction(Request $request)
     {
-       return new JsonResponse(array('result' => 'ko'));
+        if(!$room = $this->get("ydle.rooms.manager")->getRepository()->find($request->get('id'))){
+            return new JsonResponse(array('room' => 'ko'));
+        }
+        $object = $this->get("ydle.rooms.manager")->getRepository()->find($request->get('id'));
+        $em = $this->getDoctrine()->getManager();                                                                         
+        $em->remove($object);
+        $em->flush();
+       return new JsonResponse(array('room' => 'ok'));
     }
     
     /**
@@ -97,7 +139,7 @@ class DefaultController extends Controller
                   "name" =>  $capteur->getName(),
                   "description" =>  $capteur->getDescription(),
                   "unit" =>  $capteur->getUnit(),
-                  "active" =>  $capteur->getIsActive(),
+                  "is_active" =>  $capteur->getIsActive(),
                   // TODO current data
                    "current" => "10"
                 );
@@ -109,9 +151,9 @@ class DefaultController extends Controller
             "id" => $room->getId(),
             "name" => $room->getName(),
             "description" => $room->getDescription(),
-            "active" => $room->getIsActive(),
+            "is_active" => $room->getIsActive(),
             "type" => $room->getType()->getName(),
-            "capteurs" => $jsonSensor
+            "sensors" => $jsonSensor
          );
 
         $this->get('ydle.logger')->log('info', 'get Room #'.$request->get('id').' from '.$request->getClientIp() , 'api');
