@@ -9,7 +9,9 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+
 use Ydle\IhmBundle\Entity\NodeData;
+use Ydle\RoomBundle\Entity\Room;
 
 class DefaultController extends Controller
 {
@@ -47,6 +49,8 @@ class DefaultController extends Controller
      */
     public function addRoomAction(Request $request)
     {
+        return new JsonResponse(array('result' => 'ko','messsage' => 'not implemented yet'));
+
         $name   = $request->get('name');
         $active   = $request->get('is_active');
         $description   = $request->get('description');
@@ -64,7 +68,7 @@ class DefaultController extends Controller
         $em->persist($room);
         $em->flush();
 
-       return new JsonResponse(array('room' => 'ko'));
+       return new JsonResponse(array('result' => 'ko'));
     }
 
     /**
@@ -76,8 +80,10 @@ class DefaultController extends Controller
      */
     public function editRoomAction(Request $request)
     {
+        return new JsonResponse(array('result' => 'ko','messsage' => 'not implemented yet'));
+
         if(!$room = $this->get("ydle.rooms.manager")->getRepository()->find($request->get('id'))){
-            return new JsonResponse(array('room' => 'ko'));
+            return new JsonResponse(array('result' => 'ko'));
         }
         //TODO contrôle des paramètres
         $name   = $request->get('name');
@@ -107,13 +113,17 @@ class DefaultController extends Controller
     public function deleteRoomAction(Request $request)
     {
         if(!$room = $this->get("ydle.rooms.manager")->getRepository()->find($request->get('id'))){
-            return new JsonResponse(array('room' => 'ko'));
+            return new JsonResponse(array('result' => 'ko','message'=> 'unable to find room'));
         }
-        $object = $this->get("ydle.rooms.manager")->getRepository()->find($request->get('id'));
+        $nodes = $this->get("ydle.nodes.manager")->findSensorsByRoom($room); 
+        if(sizeof($nodes) > 0){
+            return new JsonResponse(array('result' => 'ko','message'=> 'associated with a node'));
+        }
+      
         $em = $this->getDoctrine()->getManager();                                                                         
-        $em->remove($object);
+        $em->remove($room);
         $em->flush();
-       return new JsonResponse(array('room' => 'ok'));
+       return new JsonResponse(array('result' => 'ok'));
     }
     
     /**
@@ -126,7 +136,7 @@ class DefaultController extends Controller
     public function roomAction(Request $request)
     {
         if(!$room = $this->get("ydle.rooms.manager")->getRepository()->find($request->get('id'))){
-            return new JsonResponse(array('room' => 'ko'));
+            return new JsonResponse(array('result' => 'ko'));
         }
 
         $jsonSensor = array();
