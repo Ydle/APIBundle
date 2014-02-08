@@ -242,7 +242,7 @@ class DefaultController extends Controller
         
         $this->get('ydle.logger')->log('data', 'Data received from node #'.$sender.' : '.$data, 'node');
             
-        return new JsonResponse(array('code' => 0, 'result' => 'No data sent'));
+        return new JsonResponse(array('code' => 0, 'result' => 'data sent'));
     }
     
     /**
