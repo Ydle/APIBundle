@@ -38,7 +38,7 @@ class DefaultController extends Controller
 
         $this->get('ydle.logger')->log('info', 'Rooms list requested by '.$request->getClientIp() , 'api');
         
-        return new JsonResponse(array('rooms' => $json));        
+        return new JsonResponse(array('code' => 0, 'result' => $json));         
     }
 
     /**
@@ -162,7 +162,8 @@ class DefaultController extends Controller
     }
     
     /**
-     * Expose Room details
+     * Expose Room details 
+     * url used : /api/room/{id}
      * 
      * @param \Symfony\Component\HttpFoundation\Request $request
      * @return \Symfony\Component\HttpFoundation\JsonResponse
@@ -206,7 +207,8 @@ class DefaultController extends Controller
     }
     
     /**
-     * Save data from a node
+     * Save data from a node 
+     * url used : /api/node/data
      * 
      * @param \Symfony\Component\HttpFoundation\Request $request
      * @return \Symfony\Component\HttpFoundation\JsonResponse
@@ -217,20 +219,16 @@ class DefaultController extends Controller
         $sender   = $request->get('sender');
         $typeId   = $request->get('type');
         $data     = $request->get('data');
-        if(!$node = $this->get("ydle.nodes.manager")->getRepository()->findOneBy(array('code' => $sender))){
-            return new JsonResponse(array('node' => 'ko'));
+        if(!$node = $this->get("ydle.nodes.manager")->getRepository()->findOneBy(array('code' => $sender))){ 
+            return new JsonResponse(array('code' => 2, 'result' => 'Wrong node code'));
         }
         
         if(!$type = $this->get("ydle.sensor_types.manager")->getRepository()->findOneBy(array('id' => $typeId))){
-          return new JsonResponse(array('node' => 'ko'));
-        }
-        
-        if(!$request->isMethod('POST')){
-            return new JsonResponse(array('error' => 'wrong access method'));
+            return new JsonResponse(array('code' => 2, 'result' => 'Wrong type'));
         }
         
         if(empty($data)){
-            return new JsonResponse(array('error' => 'no data sent'));
+            return new JsonResponse(array('code' => 2, 'result' => 'No data sent'));    
         }
         
         $nodeData = new NodeData();
@@ -244,7 +242,7 @@ class DefaultController extends Controller
         
         $this->get('ydle.logger')->log('data', 'Data received from node #'.$sender.' : '.$data, 'node');
             
-        return new JsonResponse(array('node' => 'ok'));
+        return new JsonResponse(array('code' => 0, 'result' => 'No data sent'));
     }
     
     /**
@@ -263,8 +261,8 @@ class DefaultController extends Controller
         }
 
         $this->get('ydle.logger')->log('info', 'get types room from '.$request->getClientIp() , 'api');
-            
-        return new JsonResponse(array('types' => $json));        
+        
+        return new JsonResponse(array('code' => 0, 'result' => $json));         
     }
 
     /**
@@ -283,8 +281,8 @@ class DefaultController extends Controller
         }
 
         $this->get('ydle.logger')->log('info', 'get types node from '.$request->getClientIp() , 'api');
-            
-        return new JsonResponse(array('types' => $json));        
+        
+        return new JsonResponse(array('code' => 0, 'result' => $json));         
     }
     
     /**
@@ -294,17 +292,18 @@ class DefaultController extends Controller
      * @return \Symfony\Component\HttpFoundation\JsonResponse
      */
     function addLogAction(Request $request)
-    {
-        if(!$request->isMethod('POST')){
-            return new JsonResponse(array('error' => 'wrong access method'));
-        }
-        
+    {        
         $message = $request->get('message');
         $level   = $request->get('level');
         
-        $this->get('ydle.logger')->log('log', $message, 'master');
+        if(empty($message)){ return new JsonResponse(array('code' => 2, 'result' => 'Message required')); }
         
-        return new JsonResponse(array('log' => 'ok'));
+        $log = $this->get('ydle.logger')->log('log', $message, 'master');
+        if(!is_object($log) || !$log->getId()){          
+            return new JsonResponse(array('code' => 4, 'result' => 'log error'));
+        } else {        
+            return new JsonResponse(array('code' => 0, 'result' => 'log ok')); 
+        }
     }
     
     /**
@@ -314,20 +313,25 @@ class DefaultController extends Controller
      * @return \Symfony\Component\HttpFoundation\JsonResponse
      */
     function addLogsAction(Request $request)
-    {
-        if(!$request->isMethod('POST')){
-            return new JsonResponse(array('error' => 'wrong access method'));
+    {        
+        $logs = json_decode($request->getContent(), true);
+        if(empty($logs)){
+            return new JsonResponse(array('code' => 2, 'result' => 'empty logs'));       
         }
         
-        $logs = json_decode($request->getContent(), true);
-        
-        //var_dump($logs);die;
+        $cpt = 0;
         foreach($logs as $log){
             $message = $log['message'];
             $level = $log['level'];
-            $this->get('ydle.logger')->log('log', $message, 'master');
+            $object = $this->get('ydle.logger')->log('log', $message, 'master');
+            if(is_object($object) && $object->getId()){ $cpt++; }
         }
         
-        return new JsonResponse(array('log' => '{ok:'.count($logs).'}'));
+        if(count($logs) != $cpt) {          
+            return new JsonResponse(array('code' => 4, 'result' => (count($logs) - $cpt).' logs not created'));
+        } else {        
+            return new JsonResponse(array('code' => 0, 'result' => $cpt.' logs created')); 
+        }
+        
     }
 }
