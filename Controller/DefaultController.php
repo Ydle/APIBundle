@@ -17,12 +17,14 @@ class DefaultController extends Controller
 {
     /**
      * Expose rooms list
+     * requested by url /api/rooms
      * 
      * @Template()
      */
     public function roomsAction(Request $request)
     {
         $rooms = $this->get("ydle.rooms.manager")->findAllByName();
+        
         foreach ($rooms as $room) {
             $json[] = array(
                    "id" => $room->getId(),
@@ -30,18 +32,19 @@ class DefaultController extends Controller
                    "is_active" => $room->getIsActive(),
                    "description" => $room->getDescription(),
                    "type" => $room->getType()->getName(),
-                   // rechercher le nombre de capteurs dans la pi?ce
                    "sensors" => $this->get("ydle.nodes.manager")->countSensorsByRoom($room) 
             );
         }
 
-        $this->get('ydle.logger')->log('info', 'get Rooms from '.$request->getClientIp() , 'api');
+        $this->get('ydle.logger')->log('info', 'Rooms list requested by '.$request->getClientIp() , 'api');
         
         return new JsonResponse(array('rooms' => $json));        
     }
 
     /**
-     * Add Room
+     * add a room through the api
+     * requested by url : /api/room
+     * params accepted are : name, is_active, description, type_id
      * 
      * @param \Symfony\Component\HttpFoundation\Request $request
      * @return \Symfony\Component\HttpFoundation\JsonResponse
@@ -49,62 +52,87 @@ class DefaultController extends Controller
      */
     public function addRoomAction(Request $request)
     {
-        return new JsonResponse(array('result' => 'ko','messsage' => 'not implemented yet'));
-
-        $name   = $request->get('name');
-        $active   = $request->get('is_active');
-        $description   = $request->get('description');
-        $typeId     = $request->get('typeId');
+        $name = $request->get('name');
+        $active  = $request->get('is_active');
+        $description = $request->get('description');
+        $typeId = $request->get('type_id');
+        
+        if(empty($name)){ 
+            return new JsonResponse(array('code' => 2, 'result' => 'Name required'));
+        }
+        
+        if(empty($typeId)){ 
+            return new JsonResponse(array('code' => 2, 'result' => 'Type ID required'));
+        }
+        
+        if(!$type = $this->get('ydle.roomtypes.manager')->getRepository()->find($typeId)){
+            return new JsonResponse(array('code' => 2, 'result' => 'Wrong type id'));
+        }
 
         $room = new Room();
-
-        $room->setIsActive($active);
+        if(!is_null($active)) { $room->setIsActive($active); }
+        if(!is_null($description)) { $room->setDescription($description); }
         $room->setName($name);
-        $room->setDescription($description);
-
-         //TODO chargement du type de pièce a partir de l'id
+        $room->setType($type);
 
         $em = $this->getDoctrine()->getManager();
         $em->persist($room);
         $em->flush();
-
-       return new JsonResponse(array('result' => 'ko'));
+        
+        if($room->getId()){
+            $this->get('ydle.logger')->log('info', 'Room #'.$room->getId().' created from '.$request->getClientIp() , 'api');
+            return new JsonResponse(array('code' => 0, 'result' => 'Room created with id : '.$room->getId()));
+        } else {
+            $this->get('ydle.logger')->log('info', 'Failed to create room from '.$request->getClientIp() , 'api');
+            return new JsonResponse(array('code' => 4, 'result' => 'Cannot create room'));
+        }
     }
 
     /**
-     * Add Room
+     * Modify a room 
+     * url used : /api/room/{id}
+     * params accepted are : name, is_active, description, type_id, id
      * 
      * @param \Symfony\Component\HttpFoundation\Request $request
      * @return \Symfony\Component\HttpFoundation\JsonResponse
      * @throws type
      */
     public function editRoomAction(Request $request)
-    {
-        return new JsonResponse(array('result' => 'ko','messsage' => 'not implemented yet'));
+    { 
+        $id = $request->get('id');
+        $name = $request->get('name');
+        $active = $request->get('is_active');
+        $description = $request->get('description');
+        $typeId = $request->get('type_id');
+                                                                                                 
+        if(empty($id)){ return new JsonResponse(array('code' => 2, 'result' => 'Id required')); }
+        if(empty($name)){ return new JsonResponse(array('code' => 2, 'result' => 'Name required')); }
+        if(empty($typeId)){ return new JsonResponse(array('code' => 2, 'result' => 'Type id required')); } 
 
-        if(!$room = $this->get("ydle.rooms.manager")->getRepository()->find($request->get('id'))){
-            return new JsonResponse(array('result' => 'ko'));
+        if(!$room = $this->get("ydle.rooms.manager")->getRepository()->find($id)){ 
+            return new JsonResponse(array('code' => 2, 'result' => 'Wrong id'));
         }
-        //TODO contrôle des paramètres
-        $name   = $request->get('name');
-        $active   = $request->get('is_active');
-        $description   = $request->get('description');
-        $typeId     = $request->get('typeId');
-
-        $room->setIsActive($active);
+        
+        if(!$type = $this->get('ydle.roomtypes.manager')->getRepository()->find($typeId)){
+            return new JsonResponse(array('code' => 2, 'result' => 'Wrong type id'));
+        }
+                                   
+        if(!is_null($active)) { $room->setIsActive($active); }
+        if(!is_null($description)) { $room->setDescription($description); }
         $room->setName($name);
-        $room->setDescription($description);
- 
-        //TODO si le type de pièce a changé, on l'enregistre
+        $room->setType($type);
 
         $em = $this->getDoctrine()->getManager();
         $em->persist($room);
-        $em->flush();
-        return new JsonResponse(array('room' => $room));
+        $em->flush(); 
+        
+        $this->get('ydle.logger')->log('info', 'Room #'.$room->getId().' modified from '.$request->getClientIp() , 'api');
+        return new JsonResponse(array('code' => 0, 'result' => 'Room modified'));
     }
 
     /**
-     * Add Room
+     * Delete a room 
+     * url used : /api/room/{id}
      * 
      * @param \Symfony\Component\HttpFoundation\Request $request
      * @return \Symfony\Component\HttpFoundation\JsonResponse
@@ -112,18 +140,25 @@ class DefaultController extends Controller
      */
     public function deleteRoomAction(Request $request)
     {
-        if(!$room = $this->get("ydle.rooms.manager")->getRepository()->find($request->get('id'))){
-            return new JsonResponse(array('result' => 'ko','message'=> 'unable to find room'));
+        $id = $request->get('id');
+        if(!$room = $this->get("ydle.rooms.manager")->getRepository()->find($id)){
+            return new JsonResponse(array('code' => 2, 'result' => 'Wrong id'));
         }
         $nodes = $this->get("ydle.nodes.manager")->findSensorsByRoom($room); 
         if(sizeof($nodes) > 0){
-            return new JsonResponse(array('result' => 'ko','message'=> 'associated with a node'));
+            return new JsonResponse(array('code' => 4, 'result' => 'Cannot a room associated to a node'));
         }
-      
+
         $em = $this->getDoctrine()->getManager();                                                                         
         $em->remove($room);
         $em->flush();
-       return new JsonResponse(array('result' => 'ok'));
+        if($room->getId()){
+            $this->get('ydle.logger')->log('info', 'Tried to delete room #'.$room->getId().' from '.$request->getClientIp() , 'api');
+            return new JsonResponse(array('code' => 4, 'result' => 'failed to delete room'));
+        } else {
+            $this->get('ydle.logger')->log('info', 'Delete room #'.$id.' from '.$request->getClientIp() , 'api'); 
+            return new JsonResponse(array('code' => 0, 'result' => 'room #'.$id.' deleted'));
+        }
     }
     
     /**
@@ -135,16 +170,17 @@ class DefaultController extends Controller
      */
     public function roomAction(Request $request)
     {
-        if(!$room = $this->get("ydle.rooms.manager")->getRepository()->find($request->get('id'))){
-            return new JsonResponse(array('result' => 'ko'));
+        $id = $request->get('id');
+        if(!$room = $this->get("ydle.rooms.manager")->getRepository()->find($id)){ 
+            return new JsonResponse(array('code' => 2, 'result' => 'Wrong id'));
         }
 
-        $jsonSensor = array();
-         //  rechercher les capteurs(name,type,currentValue,unit) de la pi?ce
+        $sensorsData = array();
+        // Load sensors from the room
         $nodes = $this->get("ydle.nodes.manager")->findSensorsByRoom($room); 
         foreach ($nodes as $node) { 
             foreach ($node->getTypes() as $capteur) { 
-                $jsonSensor[]=array(
+                $sensorsData[] = array(
                   "id" =>  $capteur->getId(),
                   "name" =>  $capteur->getName(),
                   "description" =>  $capteur->getDescription(),
@@ -156,18 +192,17 @@ class DefaultController extends Controller
             }
         }
 
-
         $json = array(
             "id" => $room->getId(),
             "name" => $room->getName(),
             "description" => $room->getDescription(),
             "is_active" => $room->getIsActive(),
             "type" => $room->getType()->getName(),
-            "sensors" => $jsonSensor
+            "sensors" => $sensorsData
          );
 
-        $this->get('ydle.logger')->log('info', 'get Room #'.$request->get('id').' from '.$request->getClientIp() , 'api');
-        return new JsonResponse(array('room' => $json));
+        $this->get('ydle.logger')->log('info', 'Details for room #'.$request->get('id').' from '.$request->getClientIp() , 'api');
+        return new JsonResponse(array('code' => 0, 'result' => $json));
     }
     
     /**
