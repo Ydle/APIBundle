@@ -10,7 +10,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 
-use Ydle\IhmBundle\Entity\NodeData;
+use Ydle\HubBundle\Entity\NodeData;
 use Ydle\RoomBundle\Entity\Room;
 
 class DefaultController extends Controller
