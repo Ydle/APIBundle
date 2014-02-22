@@ -1,4 +1,20 @@
 <?php
+/*
+  This file is part of Ydle.
+
+    Ydle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU  Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Ydle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU  Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with Ydle.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 namespace Ydle\APIBundle\Controller;
 
@@ -242,7 +258,7 @@ class DefaultController extends Controller
         
         $this->get('ydle.logger')->log('data', 'Data received from node #'.$sender.' : '.$data, 'node');
             
-        return new JsonResponse(array('code' => 0, 'result' => 'No data sent'));
+        return new JsonResponse(array('code' => 0, 'result' => 'data sent'));
     }
     
     /**
